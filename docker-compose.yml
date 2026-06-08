@@ -1,0 +1,54 @@
+services:
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    env_file: .env
+    container_name: planning_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE}
+      MYSQL_USER:          ${MYSQL_USER}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro
+    networks:
+      - pizzeria_net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  back:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    container_name: planning
+    environment:
+      DB_HOST:     planning_db
+      DB_PORT:     3306
+      DB_USER:     ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME:     ${DB_NAME}
+      SECRET_KEY:  ${SECRET_KEY}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pizzeria_net
+      - proxy-network
+    volumes:
+      - .:/app          # hot-reload en dev — retirer en prod
+
+volumes:
+  db_data:
+
+networks:
+  pizzeria_net:
+    driver: bridge
+  proxy-network:
+    external: true

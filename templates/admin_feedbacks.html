@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PizzaPlan — Admin Feedbacks</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <span class="nav-logo-icon">🍕</span>
+      <span class="nav-logo-text">PizzaPlan</span>
+      <span class="badge badge-danger" style="margin-left:8px">Admin</span>
+    </div>
+    <div class="nav-right">
+      <div class="theme-switcher" id="admin-theme-switcher"></div>
+    </div>
+  </div>
+</nav>
+
+<main class="main-content">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Feedbacks managers</h1>
+      <p class="page-subtitle" id="admin-subtitle">Chargement…</p>
+    </div>
+    <div class="flex gap-8 items-center">
+      <input class="form-input" type="password" id="admin-token-input"
+             placeholder="Token admin" style="width:180px">
+      <button class="btn btn-primary" id="admin-load-btn">Charger</button>
+    </div>
+  </div>
+
+  <!-- Compteurs statuts -->
+  <div class="admin-stats" id="admin-stats" style="display:none">
+    <button class="admin-stat-btn active" data-status="all">
+      <span class="admin-stat-count" id="count-all">0</span>
+      <span class="admin-stat-label">Tous</span>
+    </button>
+    <button class="admin-stat-btn" data-status="unread" style="--dot:var(--danger)">
+      <span class="admin-stat-count" id="count-unread">0</span>
+      <span class="admin-stat-label">Non lus</span>
+    </button>
+    <button class="admin-stat-btn" data-status="in_progress" style="--dot:var(--warning)">
+      <span class="admin-stat-count" id="count-in_progress">0</span>
+      <span class="admin-stat-label">En cours</span>
+    </button>
+    <button class="admin-stat-btn" data-status="integrated" style="--dot:var(--success)">
+      <span class="admin-stat-count" id="count-integrated">0</span>
+      <span class="admin-stat-label">Intégrés</span>
+    </button>
+    <button class="admin-stat-btn" data-status="refused" style="--dot:var(--text-3)">
+      <span class="admin-stat-count" id="count-refused">0</span>
+      <span class="admin-stat-label">Refusés</span>
+    </button>
+  </div>
+
+  <!-- Liste feedbacks -->
+  <div id="feedbacks-container" style="display:none">
+    <div class="feedback-list" id="feedback-list"></div>
+    <div class="empty-state hidden" id="feedbacks-empty">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">Aucun feedback</div>
+      <div class="empty-desc">Aucun retour pour ce filtre.</div>
+    </div>
+  </div>
+
+  <!-- Auth wall -->
+  <div class="auth-wall" id="auth-wall">
+    <div class="auth-wall-icon">🔒</div>
+    <div class="auth-wall-text">Entrez votre token admin pour accéder aux feedbacks</div>
+  </div>
+
+</main>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+/* ============================================================
+   admin_feedbacks — inline script
+   ============================================================ */
+
+const STATUS_LABELS = {
+  unread:      { label: 'Non lu',    badge: 'badge-danger',  dot: 'var(--danger)' },
+  in_progress: { label: 'En cours',  badge: 'badge-warning', dot: 'var(--warning)' },
+  integrated:  { label: 'Intégré',   badge: 'badge-success', dot: 'var(--success)' },
+  refused:     { label: 'Refusé',    badge: 'badge-neutral', dot: 'var(--text-3)' },
+};
+
+let adminToken   = '';
+let allFeedbacks = [];
+let activeFilter = 'all';
+
+/* --- AUTH --- */
+document.getElementById('admin-load-btn').addEventListener('click', loadFeedbacks);
+document.getElementById('admin-token-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadFeedbacks();
+});
+
+async function loadFeedbacks() {
+  adminToken = document.getElementById('admin-token-input').value.trim();
+  if (!adminToken) { toastError('Token requis'); return; }
+
+  const btn = document.getElementById('admin-load-btn');
+  btn.disabled = true; btn.textContent = 'Chargement…';
+
+  try {
+    const data = await fetchWithToken('/api/admin/feedbacks');
+    allFeedbacks = data.feedbacks;
+    renderCounts(data.counts);
+    renderFeedbacks();
+
+    document.getElementById('auth-wall').style.display        = 'none';
+    document.getElementById('admin-stats').style.display      = 'flex';
+    document.getElementById('feedbacks-container').style.display = 'block';
+    document.getElementById('admin-subtitle').textContent =
+      `${allFeedbacks.length} feedback(s) au total`;
+
+    // Filtre tabs
+    document.querySelectorAll('.admin-stat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.admin-stat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.status;
+        renderFeedbacks();
+      });
+    });
+
+  } catch (err) {
+    toastError(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Charger';
+  }
+}
+
+function renderCounts(counts) {
+  const total = Object.values(counts).reduce((s,v) => s+v, 0);
+  document.getElementById('count-all').textContent        = total;
+  document.getElementById('count-unread').textContent     = counts.unread      || 0;
+  document.getElementById('count-in_progress').textContent= counts.in_progress || 0;
+  document.getElementById('count-integrated').textContent = counts.integrated  || 0;
+  document.getElementById('count-refused').textContent    = counts.refused     || 0;
+}
+
+function renderFeedbacks() {
+  const list  = document.getElementById('feedback-list');
+  const empty = document.getElementById('feedbacks-empty');
+  list.innerHTML = '';
+
+  let filtered = activeFilter === 'all'
+    ? allFeedbacks
+    : allFeedbacks.filter(f => f.status === activeFilter);
+
+  if (filtered.length === 0) {
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  filtered.forEach(fb => {
+    const card = document.createElement('div');
+    card.className = 'feedback-card';
+    const sl = STATUS_LABELS[fb.status] || STATUS_LABELS.unread;
+    const date = new Date(fb.created_at).toLocaleDateString('fr-FR', {
+      day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+
+    card.innerHTML = `
+      <div class="feedback-card-header">
+        <div class="flex items-center gap-12">
+          <div class="feedback-avatar">${(fb.manager || '?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="feedback-manager">${escHtml(fb.manager || 'Inconnu')}</div>
+            <div class="feedback-date text-xs text-3">${date}</div>
+          </div>
+        </div>
+        <span class="badge ${sl.badge}">${sl.label}</span>
+      </div>
+      <div class="feedback-message">${escHtml(fb.message)}</div>
+      <div class="feedback-actions">
+        <span class="text-xs text-3">Changer le statut :</span>
+        ${Object.entries(STATUS_LABELS).map(([s, info]) => `
+          <button class="btn btn-sm ${fb.status === s ? 'btn-primary' : 'btn-secondary'}"
+                  onclick="updateStatus(${fb.id}, '${s}', this)">
+            ${info.label}
+          </button>`).join('')}
+        <button class="btn btn-danger btn-sm" onclick="deleteFeedback(${fb.id}, this)">
+          Supprimer
+        </button>
+      </div>`;
+
+    list.appendChild(card);
+  });
+}
+
+async function updateStatus(id, status, btn) {
+  try {
+    await fetchWithToken(`/api/admin/feedbacks/${id}`, 'PUT', { status });
+    const fb = allFeedbacks.find(f => f.id === id);
+    if (fb) fb.status = status;
+    renderFeedbacks();
+    toastSuccess('Statut mis à jour');
+  } catch (err) { toastError(err.message); }
+}
+
+async function deleteFeedback(id, btn) {
+  if (!confirm('Supprimer définitivement ce feedback ?')) return;
+  try {
+    await fetchWithToken(`/api/admin/feedbacks/${id}`, 'DELETE');
+    allFeedbacks = allFeedbacks.filter(f => f.id !== id);
+    renderFeedbacks();
+    toastSuccess('Feedback supprimé');
+  } catch (err) { toastError(err.message); }
+}
+
+async function fetchWithToken(url, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type':  'application/json',
+      'X-Admin-Token': adminToken,
+    },
+    credentials: 'same-origin',
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(url, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || `Erreur ${res.status}`);
+  return data;
+}
+
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  // Theme switcher
+  const container = document.getElementById('admin-theme-switcher');
+  ['light','dark','red','blue'].forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-btn';
+    btn.dataset.theme = t;
+    btn.title = `Thème ${t}`;
+    const saved = localStorage.getItem('pizzaplan_theme') || 'light';
+    if (t === saved) btn.classList.add('active');
+    btn.addEventListener('click', () => applyTheme(t));
+    container.appendChild(btn);
+  });
+});
+</script>
+
+</body>
+</html>

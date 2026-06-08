@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}PizzaPlan — Créer un planning{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Planning</h1>
+    <p class="page-subtitle" id="planning-week-label">Chargement…</p>
+  </div>
+  <div class="flex gap-8">
+    <a href="/dashboard" class="btn btn-secondary">‹ Retour</a>
+    <button class="btn btn-primary hidden" id="generate-btn">
+      ✨ Générer le planning
+    </button>
+  </div>
+</div>
+
+<!-- Stepper -->
+<div class="stepper mb-24">
+  <div class="step active" id="step-1">
+    <div class="step-dot">1</div>
+    <span class="step-label">Contraintes</span>
+  </div>
+  <div class="step-line"></div>
+  <div class="step" id="step-2">
+    <div class="step-dot">2</div>
+    <span class="step-label">Génération</span>
+  </div>
+  <div class="step-line"></div>
+  <div class="step" id="step-3">
+    <div class="step-dot">3</div>
+    <span class="step-label">Validation</span>
+  </div>
+</div>
+
+<!-- ÉTAPE 1 : Contraintes par équipier -->
+<div id="phase-constraints">
+  <div class="flex items-center justify-between mb-16">
+    <h2 class="section-title">Configurez les contraintes par équipier</h2>
+    <span class="badge badge-neutral" id="validated-count">0 / 0 validés</span>
+  </div>
+
+  <div class="emp-constraint-list" id="emp-list">
+    <!-- Généré en JS -->
+  </div>
+
+  <div class="flex justify-end mt-24">
+    <button class="btn btn-primary btn-lg" id="generate-btn-2" disabled>
+      ✨ Générer le planning
+    </button>
+  </div>
+</div>
+
+<!-- ÉTAPE 2 : Génération en cours -->
+<div id="phase-generating" class="hidden">
+  <div class="generating-screen">
+    <div class="generating-anim">
+      <div class="gen-spinner"></div>
+      <div class="gen-pizza">🍕</div>
+    </div>
+    <h2 class="generating-title">Génération en cours…</h2>
+    <p class="generating-desc" id="gen-attempt-label">Tentative 1 / 50</p>
+  </div>
+</div>
+
+<!-- ÉTAPE 3 : Résultat + anomalies -->
+<div id="phase-result" class="hidden">
+  <div class="result-header mb-16">
+    <div>
+      <h2 class="section-title">Planning généré</h2>
+      <p class="text-sm text-2" id="result-meta"></p>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary" id="regenerate-btn">↺ Regénérer</button>
+      <button class="btn btn-primary" id="confirm-btn">✓ Valider ce planning</button>
+    </div>
+  </div>
+
+  <!-- Anomalies -->
+  <div id="anomalies-section" class="hidden mb-16">
+    <div class="anomalies-list" id="anomalies-list"></div>
+  </div>
+
+  <!-- Calendrier résultat -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="calendar-grid" id="result-grid"></div>
+  </div>
+
+  <!-- Récap heures -->
+  <div class="hours-recap mt-16" id="hours-recap"></div>
+</div>
+
+<!-- Modal contraintes employé -->
+<div class="modal-backdrop" id="constraint-modal" style="display:none">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="cm-emp-name"></div>
+        <div class="text-sm text-2 mt-8" id="cm-emp-info"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('constraint-modal')">✕</button>
+    </div>
+
+    <div class="constraint-sections">
+
+      <!-- Absent toute la semaine -->
+      <div class="constraint-section">
+        <label class="toggle-label constraint-toggle">
+          <input type="checkbox" id="cm-absent-week">
+          <span class="toggle-track-small"></span>
+          <span class="constraint-toggle-label">Absent toute la semaine</span>
+        </label>
+      </div>
+
+      <!-- Jours indisponibles -->
+      <div class="constraint-section" id="cm-days-section">
+        <div class="constraint-section-title">Jours indisponibles</div>
+        <div class="days-checkboxes" id="cm-days">
+          <!-- Généré en JS -->
+        </div>
+      </div>
+
+      <!-- Exclusions de service -->
+      <div class="constraint-section" id="cm-excl-section">
+        <div class="constraint-section-title">Exclure d'un service</div>
+        <div class="excl-grid" id="cm-excl">
+          <!-- Généré en JS -->
+        </div>
+      </div>
+
+      <!-- Jours imposés -->
+      <div class="constraint-section" id="cm-forced-section">
+        <div class="constraint-section-title">Imposer un jour/horaire</div>
+        <div id="cm-forced-list"></div>
+        <button class="btn btn-ghost btn-sm mt-8" id="cm-add-forced">+ Ajouter</button>
+      </div>
+
+      <!-- Override heures -->
+      <div class="constraint-section">
+        <div class="constraint-section-title">Modifier les heures cette semaine</div>
+        <div class="flex gap-12 items-center">
+          <input class="form-input" type="number" id="cm-hours-override"
+                 step="0.5" min="-20" max="20" placeholder="ex: +5 ou -3" style="max-width:140px">
+          <span class="text-sm text-2">heures en plus ou en moins par rapport au contrat</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('constraint-modal')">Annuler</button>
+      <button class="btn btn-primary" id="cm-save-btn">Valider cet équipier</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>const WEEK_START = "{{ week_start }}";</script>
+<script src="{{ url_for('static', filename='js/planning.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{# Widget feedback flottant — inclure dans base.html si manager connecté #}
+{% if session.get('manager_id') %}
+<button class="feedback-fab" id="feedback-fab" title="Envoyer un retour" onclick="openModal('feedback-modal')">
+  💬
+</button>
+
+<div class="modal-backdrop" id="feedback-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Envoyer un retour</div>
+      <button class="modal-close" onclick="closeModal('feedback-modal')">✕</button>
+    </div>
+    <p class="text-sm text-2 mb-16">Une idée, un bug, une suggestion ? Parlez-nous !</p>
+    <div class="form-group">
+      <label class="form-label">Votre message</label>
+      <textarea class="form-textarea" id="feedback-msg"
+                placeholder="ex: Il manque une option pour…" maxlength="2000"></textarea>
+      <div class="form-hint" id="feedback-char">0 / 2000</div>
+    </div>
+    <div id="my-feedbacks-section" class="mt-16">
+      <div class="constraint-section-title mb-8">Mes retours précédents</div>
+      <div id="my-feedbacks-list" class="text-sm text-2">Chargement…</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('feedback-modal')">Fermer</button>
+      <button class="btn btn-primary" id="feedback-send-btn">Envoyer</button>
+    </div>
+  </div>
+</div>
+{% endif %}

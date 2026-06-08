@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active_page = 'dashboard' %}
+{% block title %}PizzaPlan — Planning{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Planning</h1>
+    <p class="page-subtitle" id="week-label">Chargement…</p>
+  </div>
+  <div class="flex gap-8 items-center flex-wrap">
+    <div class="week-nav">
+      <button class="btn btn-secondary btn-sm" id="prev-week">‹</button>
+      <button class="btn btn-ghost btn-sm"     id="today-btn">Aujourd'hui</button>
+      <button class="btn btn-secondary btn-sm" id="next-week">›</button>
+    </div>
+    <button class="btn btn-primary" id="new-planning-btn">+ Nouveau planning</button>
+  </div>
+</div>
+
+<!-- Calendrier -->
+<div class="card calendar-card" id="calendar-card">
+  <div class="calendar-grid" id="calendar-grid">
+    <!-- Généré en JS -->
+  </div>
+  <div class="empty-state hidden" id="calendar-empty">
+    <div class="empty-icon">📅</div>
+    <div class="empty-title">Aucun planning cette semaine</div>
+    <div class="empty-desc">Créez un nouveau planning pour commencer à organiser les shifts.</div>
+    <button class="btn btn-primary mt-16" onclick="document.getElementById('new-planning-btn').click()">
+      Créer un planning
+    </button>
+  </div>
+  <div class="calendar-loading" id="calendar-loading">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- Légende -->
+<div class="calendar-legend mt-16">
+  <div class="legend-item"><span class="legend-dot legend-manager"></span>Manager</div>
+  <div class="legend-item"><span class="legend-dot legend-assistant"></span>Assistant manager</div>
+  <div class="legend-item"><span class="legend-dot legend-employee"></span>Employé</div>
+  <div class="legend-item"><span class="legend-dot legend-off"></span>Repos</div>
+</div>
+
+<!-- Modal nouveau planning -->
+<div class="modal-backdrop" id="new-planning-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nouveau planning</div>
+      <button class="modal-close" onclick="closeModal('new-planning-modal')">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Semaine</label>
+      <select class="form-select" id="new-planning-week"></select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Point de départ</label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="copy_mode" value="empty" checked>
+          <span>Semaine vide</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="copy_mode" value="copy">
+          <span>Copier la semaine précédente</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('new-planning-modal')">Annuler</button>
+      <button class="btn btn-primary" id="create-planning-btn">Créer</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

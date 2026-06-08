@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PizzaPlan{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  {% if session.get('manager_id') %}
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="{{ url_for('main.dashboard') }}" class="nav-logo">
+        <span class="nav-logo-icon">🍕</span>
+        <span class="nav-logo-text">PizzaPlan</span>
+      </a>
+      <div class="nav-links">
+        <a href="{{ url_for('main.dashboard') }}"
+           class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+          Planning
+        </a>
+        <a href="{{ url_for('main.team') }}"
+           class="nav-link {% if active_page == 'team' %}active{% endif %}">
+          Équipe
+        </a>
+        <a href="{{ url_for('main.settings') }}"
+           class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+          Paramètres
+        </a>
+      </div>
+      <div class="nav-right">
+        <span class="nav-manager">👤 {{ session.get('manager_pseudo', '') }}</span>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  <main class="main-content {% if not session.get('manager_id') %}main-full{% endif %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Toast notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  {% include "feedback_widget.html" %}
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

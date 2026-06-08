@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}PizzaPlan — Connexion{% endblock %}
+
+{% block content %}
+<div class="login-page">
+
+  <div class="login-bg">
+    <div class="login-blob login-blob-1"></div>
+    <div class="login-blob login-blob-2"></div>
+    <div class="login-blob login-blob-3"></div>
+  </div>
+
+  <div class="login-card">
+
+    <div class="login-header">
+      <div class="login-logo">🍕</div>
+      <h1 class="login-title">PizzaPlan</h1>
+      <p class="login-tagline">Gestion des plannings simplifié</p>
+    </div>
+
+    <div class="login-greeting" id="greeting" style="display:none">
+      <span id="greeting-text"></span>
+    </div>
+
+    <form class="login-form" id="login-form" autocomplete="off">
+      <div class="form-group">
+        <label class="form-label" for="pseudo">Votre pseudo</label>
+        <input
+          class="form-input login-input"
+          type="text"
+          id="pseudo"
+          name="pseudo"
+          placeholder="ex: sophie_manager"
+          maxlength="80"
+          autocomplete="off"
+          autofocus
+        >
+        <div class="form-error hidden" id="pseudo-error"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full btn-lg login-btn" id="submit-btn">
+        <span id="btn-text">Connexion</span>
+        <span class="spinner hidden" id="btn-spinner"></span>
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <div class="theme-switcher login-themes" id="login-theme-switcher"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal onboarding nouveaux managers -->
+<div class="modal-backdrop" id="onboarding-modal" style="display:none">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Bienvenue ! Configurons votre resto 🎉</div>
+        <div class="text-sm text-2 mt-8">Définissez les horaires par défaut de chaque service. Vous pourrez les modifier plus tard dans les paramètres.</div>
+      </div>
+    </div>
+
+    <div class="onboarding-body" id="onboarding-body">
+      <!-- Généré en JS -->
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="onboarding-skip">Passer (configurer plus tard)</button>
+      <button class="btn btn-primary" id="onboarding-save">
+        <span>Enregistrer</span>
+        <span class="spinner hidden" id="onboarding-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active_page = 'settings' %}
+{% block title %}PizzaPlan — Paramètres{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Paramètres</h1>
+    <p class="page-subtitle">Configurez les horaires et services de votre restaurant</p>
+  </div>
+  <button class="btn btn-primary" id="save-all-btn">
+    <span id="save-all-text">Enregistrer</span>
+    <span class="spinner hidden" id="save-all-spinner"></span>
+  </button>
+</div>
+
+<!-- Tabs jours -->
+<div class="settings-days-tabs" id="days-tabs">
+  <!-- Généré en JS -->
+</div>
+
+<!-- Contenu par jour -->
+<div id="settings-content">
+  <div class="calendar-loading" id="settings-loading">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- Modal slot ouverture/close/arrivée/départ -->
+<div class="modal-backdrop" id="slot-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="slot-modal-title">Ajouter un créneau</div>
+      <button class="modal-close" onclick="closeModal('slot-modal')">✕</button>
+    </div>
+
+    <input type="hidden" id="slot-day">
+    <input type="hidden" id="slot-stype">
+    <input type="hidden" id="slot-idx">
+
+    <div class="form-group">
+      <label class="form-label">Type de créneau</label>
+      <select class="form-select" id="slot-type">
+        <option value="opening">Ouverture (avant service soir)</option>
+        <option value="arrival">Heure d'arrivée possible</option>
+        <option value="departure">Heure de départ possible</option>
+        <option value="close">Close (fin de service)</option>
+      </select>
+    </div>
+
+    <div class="flex gap-12">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Heure début</label>
+        <input class="form-input" type="time" id="slot-start">
+      </div>
+      <div class="form-group" id="slot-end-group" style="flex:1">
+        <label class="form-label">Heure fin</label>
+        <input class="form-input" type="time" id="slot-end">
+        <div class="form-hint">Ouverture et close uniquement</div>
+      </div>
+    </div>
+
+    <div class="form-group" id="slot-staff-group">
+      <label class="form-label">Nombre de personnes requis</label>
+      <input class="form-input" type="number" id="slot-staff" min="1" max="20" value="2">
+      <div class="form-hint">Ouverture et close uniquement</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('slot-modal')">Annuler</button>
+      <button class="btn btn-primary" id="slot-save-btn">Ajouter</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set active_page = 'team' %}
+{% block title %}PizzaPlan — Équipe{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Équipe</h1>
+    <p class="page-subtitle" id="team-subtitle">Chargement…</p>
+  </div>
+  <button class="btn btn-primary" id="add-emp-btn">+ Ajouter un équipier</button>
+</div>
+
+<!-- Stats rapides -->
+<div class="team-stats" id="team-stats">
+  <div class="stat-card skeleton" style="height:72px"></div>
+  <div class="stat-card skeleton" style="height:72px"></div>
+  <div class="stat-card skeleton" style="height:72px"></div>
+</div>
+
+<!-- Tableau équipe -->
+<div class="card team-card mt-24">
+  <div class="team-filters mb-16">
+    <div class="filter-tabs" id="filter-tabs">
+      <button class="filter-tab active" data-role="all">Tous</button>
+      <button class="filter-tab" data-role="manager">Managers</button>
+      <button class="filter-tab" data-role="assistant">Assistants</button>
+      <button class="filter-tab" data-role="employee">Employés</button>
+    </div>
+    <input class="form-input team-search" type="text"
+           id="team-search" placeholder="Rechercher…">
+  </div>
+
+  <div class="table-wrapper" id="team-table-wrapper">
+    <table id="team-table">
+      <thead>
+        <tr>
+          <th>Équipier</th>
+          <th>Rôle</th>
+          <th>Heures / semaine</th>
+          <th>Statut</th>
+          <th style="width:100px"></th>
+        </tr>
+      </thead>
+      <tbody id="team-tbody">
+        <!-- Généré en JS -->
+      </tbody>
+    </table>
+    <div class="empty-state hidden" id="team-empty">
+      <div class="empty-icon">👥</div>
+      <div class="empty-title">Aucun équipier</div>
+      <div class="empty-desc">Ajoutez votre premier équipier pour commencer à créer des plannings.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ajout / édition -->
+<div class="modal-backdrop" id="emp-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">Ajouter un équipier</div>
+      <button class="modal-close" onclick="closeModal('emp-modal')">✕</button>
+    </div>
+
+    <input type="hidden" id="emp-id">
+
+    <div class="form-group">
+      <label class="form-label" for="emp-name">Nom complet</label>
+      <input class="form-input" type="text" id="emp-name"
+             placeholder="ex: Sophie Martin" maxlength="100">
+      <div class="form-error hidden" id="emp-name-error"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="emp-role">Rôle</label>
+      <select class="form-select" id="emp-role">
+        <option value="employee">Employé</option>
+        <option value="assistant">Assistant Manager</option>
+        <option value="manager">Manager</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="emp-hours">Heures contractuelles / semaine</label>
+      <input class="form-input" type="number" id="emp-hours"
+             min="1" max="60" step="0.5" placeholder="ex: 35">
+      <div class="form-hint">Entre 1 et 60 heures</div>
+      <div class="form-error hidden" id="emp-hours-error"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('emp-modal')">Annuler</button>
+      <button class="btn btn-primary" id="emp-save-btn">
+        <span id="emp-save-text">Ajouter</span>
+        <span class="spinner hidden" id="emp-save-spinner"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmation suppression -->
+<div class="modal-backdrop" id="delete-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Retirer de l'équipe</div>
+      <button class="modal-close" onclick="closeModal('delete-modal')">✕</button>
+    </div>
+    <p class="text-sm text-2" id="delete-confirm-text"></p>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('delete-modal')">Annuler</button>
+      <button class="btn btn-danger" id="delete-confirm-btn">Retirer</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/team.js') }}"></script>
+{% endblock %}
