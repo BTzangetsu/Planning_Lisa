@@ -47,6 +47,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('generate-btn-2')
     .addEventListener('click', startGeneration);
+
+  document.getElementById('validate-all-btn')
+    .addEventListener('click', () => {
+      employees.forEach(emp => validated.add(emp.id));
+      renderEmpList();
+      toastSuccess('Tous les équipiers validés !');
+    });
   document.getElementById('regenerate-btn')
     .addEventListener('click', startGeneration);
   document.getElementById('confirm-btn')

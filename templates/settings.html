@@ -38,13 +38,20 @@
     <input type="hidden" id="slot-stype">
     <input type="hidden" id="slot-idx">
 
+    <!-- Créneaux existants sur les autres jours -->
+    <div class="form-group" id="existing-slots-section">
+      <label class="form-label">Réutiliser un créneau existant</label>
+      <div class="existing-slots-list" id="existing-slots-list">
+        <span class="text-xs text-3">Chargement…</span>
+      </div>
+    </div>
+
     <div class="form-group">
-      <label class="form-label">Type de créneau</label>
+      <label class="form-label">Ou définir un nouveau créneau</label>
       <select class="form-select" id="slot-type">
         <option value="opening">Ouverture (avant service soir)</option>
         <option value="arrival">Heure d'arrivée possible</option>
         <option value="departure">Heure de départ possible</option>
-        <option value="close">Close (fin de service)</option>
       </select>
     </div>
 

@@ -272,13 +272,78 @@ function openSlotModal(dayIdx, stype) {
   const typeSelect = document.getElementById('slot-type');
   typeSelect.value = stype === 'evening' ? 'opening' : 'arrival';
   typeSelect.querySelectorAll('option').forEach(opt => {
-    opt.hidden = stype === 'morning' && ['opening','close'].includes(opt.value);
+    opt.hidden = stype === 'morning' && opt.value === 'opening';
   });
 
-  // Attache le listener ici (après que la modal soit dans le DOM)
   typeSelect.onchange = updateSlotModalFields;
   updateSlotModalFields();
+
+  // Charge les créneaux existants des autres jours (même service_type)
+  loadExistingSlots(dayIdx, stype);
+
   openModal('slot-modal');
+}
+
+function loadExistingSlots(currentDay, stype) {
+  const container = document.getElementById('existing-slots-list');
+  if (!container) return;
+
+  // Collecte tous les slots uniques des autres jours pour ce stype
+  const seen = new Set();
+  const slots = [];
+
+  Object.entries(configs).forEach(([dayIdx, dayCfg]) => {
+    if (parseInt(dayIdx) === currentDay) return;
+    const cfg = dayCfg[stype];
+    if (!cfg || !cfg.slots) return;
+    cfg.slots.forEach(s => {
+      const key = `${s.slot_type}|${s.start_time}|${s.end_time || ''}|${s.required_staff || ''}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        slots.push({ ...s, _fromDay: parseInt(dayIdx) });
+      }
+    });
+  });
+
+  if (slots.length === 0) {
+    container.innerHTML = '<span class="text-xs text-3">Aucun créneau enregistré sur les autres jours.</span>';
+    return;
+  }
+
+  const typeLabels = { opening: '🔑 Ouverture', arrival: '➡️ Arrivée', departure: '⬅️ Départ' };
+
+  container.innerHTML = slots.map((s, i) => {
+    const timeInfo  = s.end_time ? `${s.start_time} → ${s.end_time}` : s.start_time;
+    const staffInfo = s.required_staff ? ` · ${s.required_staff} pers.` : '';
+    return `
+      <button class="existing-slot-chip" onclick="applyExistingSlot(${i})" data-idx="${i}">
+        <span>${typeLabels[s.slot_type] || s.slot_type}</span>
+        <span class="font-mono">${timeInfo}${staffInfo}</span>
+        <span class="text-3">${DAYS[s._fromDay]}</span>
+      </button>`;
+  }).join('');
+
+  // Stocke temporairement pour applyExistingSlot
+  container._slots = slots;
+}
+
+function applyExistingSlot(idx) {
+  const container = document.getElementById('existing-slots-list');
+  const slot = container._slots?.[idx];
+  if (!slot) return;
+
+  const typeSelect = document.getElementById('slot-type');
+  typeSelect.value = slot.slot_type;
+  document.getElementById('slot-start').value = slot.start_time;
+  document.getElementById('slot-end').value   = slot.end_time || '';
+  document.getElementById('slot-staff').value = slot.required_staff || 2;
+
+  updateSlotModalFields();
+
+  // Highlight le chip sélectionné
+  container.querySelectorAll('.existing-slot-chip').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
 }
 
 function updateSlotModalFields() {
