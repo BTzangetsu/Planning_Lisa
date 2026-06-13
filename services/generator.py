@@ -37,7 +37,7 @@ def generate(schedule_id: int) -> dict:
     constraints_raw = PlanningConstraint.query.filter_by(schedule_id=schedule_id).all()
     ctx = _build_context(employees, configs, constraints_raw)
 
-    MAX = 100
+    MAX = 80
     best_result   = None
     best_critical = 9999
 
@@ -164,6 +164,9 @@ def _run(ctx):
 
     # --- Étape 3 : attribution des services ---
     shifts += _assign_services(ctx, worked_days, worked)
+
+    # --- Étape 4 : rattrapage sous-heures ---
+    shifts += _fill_missing_hours(ctx, worked_days, worked, shifts)
 
     return shifts
 
@@ -423,6 +426,87 @@ def _assign_services(ctx, worked_days, worked):
                 count += 1
 
     return shifts
+
+
+# ================================================================== #
+#  PASSE 4 — RATTRAPAGE SOUS-HEURES                                  #
+# ================================================================== #
+
+def _fill_missing_hours(ctx, worked_days, worked, existing_shifts):
+    """
+    Pour chaque employé en sous-heures, ajoute des services
+    sur ses jours de travail existants (coupures) sans toucher
+    aux jours de repos. Traite en priorité ceux qui ont le plus
+    grand écart négatif.
+    """
+    extra_shifts = []
+    config_map   = ctx['config_map']
+
+    # Index des shifts existants par (employee_id, day, stype)
+    assigned = set()
+    for s in existing_shifts + extra_shifts:
+        stype = _guess_service_type(s['day_of_week'], s['start_time'], config_map)
+        assigned.add((s['employee_id'], s['day_of_week'], stype))
+
+    # Trie les employés par déficit décroissant
+    deficits = []
+    for emp in ctx['employees']:
+        delta = ctx['target_hours'][emp.id] - worked[emp.id]
+        if delta > 0.5:  # sous-heures significatives
+            deficits.append((delta, emp))
+    deficits.sort(key=lambda x: -x[0])
+
+    for delta, emp in deficits:
+        remaining = ctx['target_hours'][emp.id] - worked[emp.id]
+        if remaining <= 0.5:
+            continue
+
+        # Cherche des services à ajouter sur ses jours de travail déjà assignés
+        # Priorité : coupures (ajouter le service manquant sur un jour déjà travaillé)
+        work_days = sorted(worked_days[emp.id])
+
+        for day in work_days:
+            if remaining <= 0.5:
+                break
+
+            for stype in ['morning', 'evening']:
+                if (emp.id, day, stype) in assigned:
+                    continue  # déjà sur ce service ce jour
+                if stype in ctx['excl_svc'].get((emp.id, day), set()):
+                    continue  # exclu de ce service
+                if (day, stype) not in config_map:
+                    continue  # service non configuré ce jour
+
+                cfg       = config_map[(day, stype)]
+                shift_h   = _hours(cfg.open_time, cfg.close_time)
+                if shift_h <= 0:
+                    continue
+
+                # Pour le soir : utilise un slot d'arrivée si possible
+                start_t = cfg.open_time
+                end_t   = cfg.close_time
+                slot_id = None
+
+                if stype == 'evening':
+                    arrival_slots  = sorted(
+                        [s for s in cfg.slots if s.slot_type == 'arrival'],
+                        key=lambda s: s.start_time
+                    )
+                    departure_slots = [s for s in cfg.slots if s.slot_type == 'departure']
+                    if arrival_slots:
+                        sl      = arrival_slots[0]  # arrivée la plus tôt dispo
+                        start_t = sl.start_time
+                        slot_id = sl.id
+                    if departure_slots:
+                        end_t = departure_slots[-1].start_time
+
+                extra_shifts.append(_make_shift(emp.id, day, start_t, end_t, slot_id))
+                worked[emp.id] += _hours(start_t, end_t)
+                assigned.add((emp.id, day, stype))
+                remaining = ctx['target_hours'][emp.id] - worked[emp.id]
+                break  # un service à la fois par jour, on passe au jour suivant
+
+    return extra_shifts
 
 
 # ================================================================== #
