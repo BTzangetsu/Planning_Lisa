@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = 'dashboard' %}
-{% block title %}PizzaPlan — Planning{% endblock %}
+{% block title %}P4L — Planning{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -24,7 +24,7 @@
     <!-- Généré en JS -->
   </div>
   <div class="empty-state hidden" id="calendar-empty">
-    <div class="empty-icon">📅</div>
+    <div class="empty-icon"><img src="{{ url_for('static', filename='img/calendar-icon.png') }}" alt="Calendar Icon"></div>
     <div class="empty-title">Aucun planning cette semaine</div>
     <div class="empty-desc">Créez un nouveau planning pour commencer à organiser les shifts.</div>
     <button class="btn btn-primary mt-16" onclick="document.getElementById('new-planning-btn').click()">

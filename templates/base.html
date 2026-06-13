@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}PizzaPlan{% endblock %}</title>
+  <title>{% block title %}P4L{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/pizza-icon.png') }}">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -16,8 +17,8 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="{{ url_for('main.dashboard') }}" class="nav-logo">
-        <span class="nav-logo-icon">🍕</span>
-        <span class="nav-logo-text">PizzaPlan</span>
+        <span class="nav-logo-icon"><img src="{{ url_for('static', filename='img/pizza-icon.png') }}" alt="Pizza Icon"></span>
+        <span class="nav-logo-text">P4L</span>
       </a>
       <div class="nav-links">
         <a href="{{ url_for('main.dashboard') }}"
@@ -34,7 +35,7 @@
         </a>
       </div>
       <div class="nav-right">
-        <span class="nav-manager">👤 {{ session.get('manager_pseudo', '') }}</span>
+        <span class="nav-manager"><img src="{{ url_for('static', filename='img/user-icon.png') }}" alt="User Icon"> {{ session.get('manager_pseudo', '') }}</span>
         <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
       </div>
     </div>

@@ -2278,3 +2278,9 @@ tbody tr:hover .emp-actions { opacity: 1; }
   color: var(--accent-text);
   box-shadow: 0 0 0 2px var(--accent-bg);
 }
+
+img {
+    width:1em; 
+    height:1em; 
+    vertical-align:middle;
+}

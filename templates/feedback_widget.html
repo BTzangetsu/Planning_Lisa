@@ -1,7 +1,7 @@
 {# Widget feedback flottant — inclure dans base.html si manager connecté #}
 {% if session.get('manager_id') %}
 <button class="feedback-fab" id="feedback-fab" title="Envoyer un retour" onclick="openModal('feedback-modal')">
-  💬
+  <img src="{{ url_for('static', filename='img/message-icon.png') }}" alt="Feedback Icon">
 </button>
 
 <div class="modal-backdrop" id="feedback-modal" style="display:none">

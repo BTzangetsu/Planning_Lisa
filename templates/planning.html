@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = 'dashboard' %}
-{% block title %}PizzaPlan — Créer un planning{% endblock %}
+{% block title %}P4L — Créer un planning{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -50,7 +50,7 @@
 
   <div class="flex justify-end mt-24">
     <button class="btn btn-primary btn-lg" id="generate-btn-2" disabled>
-      ✨ Générer le planning
+      ✨<img src="{{ url_for('static', filename='img/generate-icon.png') }}" alt="Generate Icon"> Générer le planning
     </button>
   </div>
 </div>
@@ -60,7 +60,7 @@
   <div class="generating-screen">
     <div class="generating-anim">
       <div class="gen-spinner"></div>
-      <div class="gen-pizza">🍕</div>
+      <div class="gen-pizza">🍕<img src="{{ url_for('static', filename='img/pizza-icon.png') }}" alt="Pizza Icon"></div>
     </div>
     <h2 class="generating-title">Génération en cours…</h2>
     <p class="generating-desc" id="gen-attempt-label">Tentative 1 / 50</p>

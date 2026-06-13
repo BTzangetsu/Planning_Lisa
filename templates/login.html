@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}PizzaPlan — Connexion{% endblock %}
+{% block title %}P4L — Connexion{% endblock %}
 
 {% block content %}
 <div class="login-page">
@@ -13,8 +13,8 @@
   <div class="login-card">
 
     <div class="login-header">
-      <div class="login-logo">🍕</div>
-      <h1 class="login-title">PizzaPlan</h1>
+      <div class="login-logo"><img src="{{ url_for('static', filename='img/pizza-icon.png') }}" alt="Pizza Icon"></div>
+      <h1 class="login-title">P4L</h1>
       <p class="login-tagline">Gestion des plannings simplifié</p>
     </div>
 
@@ -24,7 +24,7 @@
 
     <form class="login-form" id="login-form" autocomplete="off">
       <div class="form-group">
-        <label class="form-label" for="pseudo">Votre pseudo</label>
+        <label class="form-label" for="pseudo">Ton pseudo chef</label>
         <input
           class="form-input login-input"
           type="text"
